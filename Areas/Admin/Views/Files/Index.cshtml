@@ -1,0 +1,32 @@
+@model List<FileGallery.Models.FileItem>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var cats = ViewBag.Categories as List<FileGallery.Models.Category> ?? new();
+    int? selected = ViewBag.SelectedCategoryId as int?;
+}
+<h2>Files</h2>
+<p>
+    Category:
+    <select onchange="location.href='?categoryId='+this.value">
+        @foreach (var c in cats)
+        {
+            <option value="@c.Id" selected="@(selected==c.Id?"selected":null)">@c.Name</option>
+        }
+    </select>
+    <a href="/Admin/Files/Edit?categoryId=@selected">Add New</a>
+</p>
+<table>
+<tr><th>Name</th><th>Size</th><th>Uploaded</th><th>Visible</th><th>Actions</th></tr>
+@foreach (var f in Model)
+{
+    <tr>
+        <td>@f.FileName</td>
+        <td>@((f.SizeBytes/1024.0/1024.0).ToString("0.00")) MB</td>
+        <td>@f.Uploaded.ToLocalTime()</td>
+        <td>@f.Visible</td>
+        <td><a href="/Admin/Files/Edit/@f.Id?categoryId=@f.CategoryId">Edit</a> |
+            <form method="post" action="/Admin/Files/Delete/@f.Id?categoryId=@f.CategoryId" style="display:inline"><button type="submit">Delete</button></form>
+        </td>
+    </tr>
+}
+</table>

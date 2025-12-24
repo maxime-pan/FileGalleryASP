@@ -1,0 +1,10 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Admin Dashboard</h2>
+<div class="cards">
+  <div class="card">Total Categories: @ViewBag.CategoriesCount</div>
+  <div class="card">Total Files: @ViewBag.FilesCount</div>
+  <div class="card">Anonymous Uploads: @ViewBag.AnonymousCount</div>
+</div>
+<p><a href="/Admin/Categories">Manage Categories</a> | <a href="/Admin/Files">Manage Files</a> | <a href="/Admin/AnonymousUploads">Anonymous Uploads</a> | <a href="/Admin/Settings">Settings</a></p>

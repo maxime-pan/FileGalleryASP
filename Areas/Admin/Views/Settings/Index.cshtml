@@ -1,0 +1,13 @@
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Settings</h2>
+@if (TempData["Message"] != null) { <div class="msg">@TempData["Message"]</div> }
+<form method="post" action="/Admin/Settings/Save">
+    <div><label>Require Windows Authentication</label><input type="checkbox" name="requireWindowsAuth" checked="@(ViewBag.RequireWindowsAuth ? "checked" : null)" /></div>
+    <div><label>Allowed Extensions (comma-separated)</label><input name="allowedExtensions" value="@ViewBag.AllowedExtensions" /></div>
+    <div><label>Max Upload Size (MB)</label><input name="maxUploadSizeMB" value="@ViewBag.MaxUploadSizeMB" /></div>
+    <div><label>Admin AD Group (optional)</label><input name="adminADGroup" value="@ViewBag.AdminADGroup" /></div>
+    <button type="submit">Save</button>
+</form>
+<p>Turn on Windows Authentication in IIS to enable AD sign-in. This toggle controls whether the public pages require authentication.</p>

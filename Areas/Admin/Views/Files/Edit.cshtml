@@ -1,0 +1,16 @@
+@model FileGallery.Models.FileItem
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Edit File Metadata</h2>
+<form method="post">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <input type="hidden" name="CategoryId" value="@Model.CategoryId" />
+    <div><label>File Name</label><input name="FileName" value="@Model.FileName" /></div>
+    <div><label>Extension</label><input name="Extension" value="@Model.Extension" /></div>
+    <div><label>Size (bytes)</label><input name="SizeBytes" value="@Model.SizeBytes" /></div>
+    <div><label>Visible</label><input type="checkbox" name="Visible" checked="@(Model.Visible ? "checked" : null)" /></div>
+    <div><label>Physical Path</label><input name="PhysicalPath" value="@Model.PhysicalPath" /></div>
+    <button type="submit">Save</button>
+</form>
+<p>Tip: you can drag files into category folders under <code>Content/</code> and then click "Add New" to register them here.</p>

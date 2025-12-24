@@ -1,0 +1,13 @@
+@model FileGallery.Models.Category
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Edit Category</h2>
+<form method="post">
+    <input type="hidden" name="Id" value="@Model.Id" />
+    <div><label>Name</label><input name="Name" value="@Model.Name" /></div>
+    <div><label>Folder Path</label><input name="FolderPath" value="@Model.FolderPath" /></div>
+    <div><label>Display Order</label><input name="DisplayOrder" value="@Model.DisplayOrder" /></div>
+    <div><label>Active</label><input type="checkbox" name="IsActive" checked="@(Model.IsActive ? "checked" : null)" /></div>
+    <button type="submit">Save</button>
+</form>

@@ -1,0 +1,18 @@
+@model List<FileGallery.Models.AnonymousUpload>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Anonymous Uploads</h2>
+<table>
+<tr><th>Original Name</th><th>Stored Name</th><th>Size</th><th>Uploaded (UTC)</th><th>Actions</th></tr>
+@foreach (var a in Model)
+{
+    <tr>
+        <td>@a.OriginalFileName</td>
+        <td>@a.StoredFileName</td>
+        <td>@((a.SizeBytes/1024.0/1024.0).ToString("0.00")) MB</td>
+        <td>@a.UploadedUtc</td>
+        <td><a href="/Admin/AnonymousUploads/Download?storedFileName=@a.StoredFileName">Download</a></td>
+    </tr>
+}
+</table>

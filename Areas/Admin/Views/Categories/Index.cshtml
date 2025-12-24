@@ -1,0 +1,21 @@
+@model List<FileGallery.Models.Category>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>Categories</h2>
+<p><a href="/Admin/Categories/Edit">Add New</a></p>
+<table>
+<tr><th>Name</th><th>Folder</th><th>Order</th><th>Active</th><th>Actions</th></tr>
+@foreach (var c in Model)
+{
+    <tr>
+        <td>@c.Name</td>
+        <td>@c.FolderPath</td>
+        <td>@c.DisplayOrder</td>
+        <td>@c.IsActive</td>
+        <td><a href="/Admin/Categories/Edit/@c.Id">Edit</a> |
+            <form method="post" action="/Admin/Categories/Delete/@c.Id" style="display:inline"><button type="submit">Delete</button></form>
+        </td>
+    </tr>
+}
+</table>
