@@ -1,61 +1,68 @@
-
-using System.IO;
-using FileGallery.Data;
-using FileGallery.Services;
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using FileGallery.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ----- App data directory & absolute SQLite path -----
-var dataDir = Path.Combine(builder.Environment.ContentRootPath, "App_Data");
-Directory.CreateDirectory(dataDir); // ensure folder exists
-
-var dbFilePath = Path.Combine(dataDir, "filegallery.db");
-// Force absolute path into configuration before DbContext registration
-builder.Configuration["ConnectionStrings:Sqlite"] = $"Data Source={dbFilePath}";
-
-// ----- MVC & services -----
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
-// EF Core (SQLite)
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Sqlite")));
+// Configure SQLite Database
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Repositories & settings
-builder.Services.AddScoped<IFileRepository, EfCoreFileRepository>();
-builder.Services.AddScoped<ISettingsService, SettingsService>();
-
-// ----- Windows Authentication (Negotiate) + site-access toggle policy -----
-builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-    .AddNegotiate();
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("SiteAccessPolicy", policy =>
+// Configure Cookie Authentication (for admin login)
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
     {
-        policy.RequireAssertion(ctx =>
-        {
-            // If RequireWindowsAuth is false -> public site (no auth required)
-            // If true -> require the request to be authenticated by Windows Auth
-            var requireWinAuth = builder.Configuration.GetValue<bool>("Security:RequireWindowsAuth");
-            if (!requireWinAuth) return true;
-            return ctx.User?.Identity?.IsAuthenticated == true;
-        });
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(8);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     });
+
+builder.Services.AddAuthorization();
+
+// Configure file upload limits
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = 100 * 1024 * 1024; // 100 MB
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024; // 100 MB
 });
 
 var app = builder.Build();
 
-// ----- DB migrate & seed -----
+// Initialize database
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // applies migrations / creates SQLite file if missing
-    DataSeeder.Seed(db, app.Configuration);
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    context.Database.EnsureCreated();
+    
+    // Create default admin if not exists
+    if (!context.AdminUsers.Any())
+    {
+        var defaultAdmin = new FileGallery.Models.AdminUser
+        {
+            Username = "admin",
+            PasswordHash = FileGallery.Controllers.AuthController.HashPassword("Admin@123"),
+            FullName = "System Administrator",
+            Email = "admin@filegallery.local",
+            IsActive = true,
+            CreatedDate = DateTime.Now
+        };
+        context.AdminUsers.Add(defaultAdmin);
+        context.SaveChanges();
+    }
 }
 
-// ----- pipeline -----
+// Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -70,16 +77,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Areas (Admin)
-app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
-
-// Public site guarded by policy (which can allow anonymous or require AD, per setting)
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .RequireAuthorization("SiteAccessPolicy");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-

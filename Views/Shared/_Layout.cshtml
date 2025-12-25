@@ -1,28 +1,54 @@
-@{
-    var title = ViewData["Title"] as string ?? "File Gallery";
-}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@title - File Gallery</title>
-    <link rel="stylesheet" href="/css/site.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - File Gallery</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .sidebar { height: 100vh; background: #f8f9fa; border-right: 1px solid #dee2e6; overflow-y: auto; }
+        .category-item { cursor: pointer; padding: 10px 15px; border-left: 3px solid transparent; }
+        .category-item:hover { background: #e9ecef; }
+        .category-item.active { background: #e7f3ff; border-left-color: #0d6efd; }
+        .file-item { padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: all 0.2s; }
+        .file-item:hover { background: #f8f9fa; }
+        .upload-btn { position: fixed; bottom: 30px; right: 30px; z-index: 1000; }
+    </style>
+    @RenderSection("Styles", required: false)
 </head>
 <body>
-<header class="topbar">
-    <div class="brand">File Gallery</div>
-    <div class="nav">
-        <a href="/">Home</a>
-        <a href="/Admin">Admin</a>
-        <a class="upload" href="/Files/Upload" target="_blank">Anonymous Upload</a>
-    </div>
-</header>
-<main>
-    @RenderBody()
-</main>
-<footer class="footer">
-    <small>&copy; @(DateTime.UtcNow.Year) File Gallery</small>
-</footer>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/"><i class="fas fa-folder-open"></i> File Gallery</a>
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/Admin"><i class="fas fa-cog"></i> Admin</a>
+                    <span class="nav-link">Welcome, @User.Identity.Name</span>
+                    <form asp-action="Logout" asp-controller="Auth" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-link nav-link" style="border: none; background: none; color: rgba(255,255,255,.55); cursor: pointer;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/Auth/Login"><i class="fas fa-sign-in-alt"></i> Admin Login</a>
+                </div>
+            }
+        </div>
+    </nav>
+
+    <main>
+        @RenderBody()
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
